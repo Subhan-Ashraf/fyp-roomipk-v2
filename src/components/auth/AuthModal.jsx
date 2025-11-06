@@ -4,6 +4,7 @@ import { useUser } from '../../context/UserContext'
 import LoginForm from './LoginForm'
 import SignupForm from './SignupForm'
 import VerificationModal from './VerificationModal'
+import ModalPortal from '../common/ModalPortal'
 
 const AuthModal = ({ type, onClose, onSwitch }) => {
   const [isLoading, setIsLoading] = useState(false)
@@ -136,8 +137,9 @@ const AuthModal = ({ type, onClose, onSwitch }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col transform transition-all duration-300">
+    <ModalPortal>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col transform transition-all duration-300">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-100 flex-shrink-0">
           <h2 className="text-2xl font-bold text-gray-800">
@@ -184,16 +186,17 @@ const AuthModal = ({ type, onClose, onSwitch }) => {
         </div>
       </div>
 
-      {/* Verification Modal */}
-      {showVerification && (
-        <VerificationModal
-          email={userEmail}
-          onVerify={handleVerification}
-          onClose={() => setShowVerification(false)}
-          onResend={handleResendCode}
-        />
-      )}
-    </div>
+        {/* Verification Modal */}
+        {showVerification && (
+          <VerificationModal
+            email={userEmail}
+            onVerify={handleVerification}
+            onClose={() => setShowVerification(false)}
+            onResend={handleResendCode}
+          />
+        )}
+      </div>
+    </ModalPortal>
   )
 }
 

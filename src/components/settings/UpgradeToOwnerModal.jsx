@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaUser, FaPhone, FaEnvelope, FaVenusMars, FaBirthdayCake, FaTimes, FaHome } from 'react-icons/fa';
+import ModalPortal from '../common/ModalPortal'
 
 const UpgradeToOwnerModal = ({ isOpen, onClose, onUpgrade, isLoading, user }) => {
   const [formData, setFormData] = useState({
@@ -58,8 +59,9 @@ const UpgradeToOwnerModal = ({ isOpen, onClose, onUpgrade, isLoading, user }) =>
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300">
+    <ModalPortal>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-100">
           <div className="flex items-center space-x-3">
@@ -222,8 +224,9 @@ const UpgradeToOwnerModal = ({ isOpen, onClose, onUpgrade, isLoading, user }) =>
             </p>
           </div>
         </form>
+        </div>
       </div>
-    </div>
+    </ModalPortal>
   );
 };
 

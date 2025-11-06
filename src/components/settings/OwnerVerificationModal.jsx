@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaEnvelope, FaClock, FaCheck, FaRedo, FaShieldAlt } from 'react-icons/fa';
+import ModalPortal from '../common/ModalPortal'
 
 const OwnerVerificationModal = ({ email, onVerify, onClose, onResend, isLoading }) => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
@@ -68,8 +69,9 @@ const OwnerVerificationModal = ({ email, onVerify, onClose, onResend, isLoading 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300">
+    <ModalPortal>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-100">
           <div className="flex items-center space-x-3">
@@ -181,8 +183,9 @@ const OwnerVerificationModal = ({ email, onVerify, onClose, onResend, isLoading 
             This extra security step ensures only verified users can become hostel owners
           </p>
         </div>
+        </div>
       </div>
-    </div>
+    </ModalPortal>
   );
 };
 

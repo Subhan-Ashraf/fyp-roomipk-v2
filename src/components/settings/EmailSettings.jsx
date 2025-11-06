@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaCheck } from 'react-icons/fa';
+import { API_BASE_URL } from '../../utils/config';
 import EmailUpdateVerificationModal from './EmailUpdateVerificationModal'; // ✅ SAME FOLDER
 
 const EmailSettings = ({ user, onUpdate }) => {
@@ -19,8 +20,7 @@ const EmailSettings = ({ user, onUpdate }) => {
     setMessage({ type: '', text: '' });
 
     try {
-      // Send email update request with password verification
-      const response = await fetch('http://localhost:5000/api/users/email/request-update', {
+      const response = await fetch(`${API_BASE_URL}/api/users/email/request-update`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,67 +32,70 @@ const EmailSettings = ({ user, onUpdate }) => {
         })
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        setVerificationCode(result.code); // Store the 4-digit code
-        setShowVerification(true);
-        setMessage({ 
-          type: 'success', 
-          text: `4-digit verification code sent! ${result.code ? `Code: ${result.code}` : 'Check your email.'}`
-        });
-      } else {
-        setMessage({ type: 'error', text: result.error || 'Failed to send verification code' });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to send verification code');
       }
+
+      const result = await response.json();
+      setVerificationCode(result.code);
+      setShowVerification(true);
+      setMessage({ 
+        type: 'success', 
+        text: `Verification code sent to ${emailData.newEmail}!`
+      });
     } catch (error) {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' });
+      console.error('Email update request error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: error.message || 'Network error. Please try again.' 
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-const handleVerification = async (code) => {
-  setIsLoading(true);
-  setMessage({ type: '', text: '' });
+  const handleVerification = async (code) => {
+    setIsLoading(true);
+    setMessage({ type: '', text: '' });
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/email/verify-update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          newEmail: emailData.newEmail,
+          code: code
+        })
+      });
 
-  try {
-    const response = await fetch('http://localhost:5000/api/users/email/verify-update', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify({
-        newEmail: emailData.newEmail,
-        code: code
-      })
-    });
+      const result = await response.json();
 
-    const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Verification failed');
+      }
 
-    if (response.ok) {
+      // Update UI state
       setMessage({ type: 'success', text: result.message || 'Email updated successfully!' });
       setShowVerification(false);
       setEmailData({ newEmail: '', currentPassword: '' });
       
-      // ✅ REAL-TIME UPDATE - Update context immediately
-      onUpdate(); // This should refresh the user context
+      // Properly refresh user context
+      await onUpdate();
       
-      // ✅ FORCE UI UPDATE - Update the current email display
-      setTimeout(() => {
-        // This will make the current email field show the new email
-        window.dispatchEvent(new Event('userUpdated'));
-      }, 100);
-      
-    } else {
-      throw new Error(result.error);
+    } catch (error) {
+      console.error('Email verification error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: error.message || 'Email update failed. Please try again.' 
+      });
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    setMessage({ type: 'error', text: error.message || 'Email update failed' });
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   return (
     <>

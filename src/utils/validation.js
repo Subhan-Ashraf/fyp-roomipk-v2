@@ -1,20 +1,3 @@
-export const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const isValid = emailRegex.test(email);
-  return {
-    isValid,
-    message: isValid ? '✓ Valid email' : 'Please enter a valid email address'
-  };
-};
-
-export const validateUsername = (username) => {
-  const isValid = username.length >= 3 && /^[a-zA-Z0-9_]+$/.test(username);
-  return {
-    isValid,
-    message: isValid ? '✓ Valid username' : 'Username must be 3+ characters (letters, numbers, _ only)'
-  };
-};
-
 export const validatePassword = (password) => {
   const hasMinLength = password.length >= 6;
   const hasUpperCase = /[A-Z]/.test(password);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { FaTimes } from 'react-icons/fa'
 import { useUser } from '../../context/UserContext'
+import { API_BASE_URL } from '../../utils/config'
 import LoginForm from './LoginForm'
 import SignupForm from './SignupForm'
 import VerificationModal from './VerificationModal'
@@ -12,7 +13,6 @@ const AuthModal = ({ type, onClose, onSwitch }) => {
   const [userEmail, setUserEmail] = useState('')
   const [userFormData, setUserFormData] = useState(null)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const { login } = useUser()
 
   if (!type) return null
@@ -21,7 +21,7 @@ const AuthModal = ({ type, onClose, onSwitch }) => {
     setIsLoading(true)
     setError('')
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -33,12 +33,10 @@ const AuthModal = ({ type, onClose, onSwitch }) => {
 
       if (response.ok) {
         login(result.user, result.token)
-        setSuccess('Login successful!')
-        setTimeout(() => {
-          onClose()
-        }, 1500)
+        onClose()
       } else {
-        setError(result.error || 'Login failed')
+        // Generic error message that doesn't reveal if username exists
+        setError('Invalid credentials')
       }
     } catch (error) {
       setError('Network error. Please check your connection.')
@@ -54,7 +52,7 @@ const AuthModal = ({ type, onClose, onSwitch }) => {
       // Store form data for verification
       setUserFormData(formData)
       
-      const response = await fetch('http://localhost:5000/api/auth/send-verification', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/send-verification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +79,7 @@ const AuthModal = ({ type, onClose, onSwitch }) => {
     setIsLoading(true)
     setError('')
     try {
-      const response = await fetch('http://localhost:5000/api/auth/verify-and-register', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/verify-and-register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +96,6 @@ const AuthModal = ({ type, onClose, onSwitch }) => {
       if (response.ok) {
         login(result.user, result.token)
         setShowVerification(false)
-        setSuccess('Registration successful! Welcome to Roomi.pk!')
         setTimeout(() => {
           onClose()
         }, 1500)
@@ -116,7 +113,7 @@ const AuthModal = ({ type, onClose, onSwitch }) => {
     setIsLoading(true)
     setError('')
     try {
-      const response = await fetch('http://localhost:5000/api/auth/resend-verification', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/resend-verification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -158,13 +155,6 @@ const AuthModal = ({ type, onClose, onSwitch }) => {
         {error && (
           <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-red-700 text-sm font-medium">{error}</p>
-          </div>
-        )}
-
-        {/* Success Message */}
-        {success && (
-          <div className="mx-6 mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-700 text-sm font-medium">{success}</p>
           </div>
         )}
 

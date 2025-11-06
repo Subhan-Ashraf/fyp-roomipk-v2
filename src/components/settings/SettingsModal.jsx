@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import SettingsSidebar from './SettingsSidebar';
 import ProfileSettings from './ProfileSettings';
@@ -8,8 +8,15 @@ import HostelSettings from './HostelSettings';
 import ModalPortal from '../common/ModalPortal';
 
 
-const SettingsModal = ({ isOpen, onClose, user, onUpdate }) => {
-  const [activeTab, setActiveTab] = useState('profile');
+const SettingsModal = ({ isOpen, onClose, user, onUpdate, initialTab = 'profile' }) => {
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Reset to initial tab when modal reopens
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
 
   if (!isOpen) return null;
 

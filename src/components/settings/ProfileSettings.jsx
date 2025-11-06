@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaUser, FaCheck, FaExclamationTriangle, FaPhone, FaEdit, FaTimes } from 'react-icons/fa';
+import { API_BASE_URL } from '../../utils/config';
 
 const ProfileSettings = ({ user, onUpdate }) => {
   const [profileData, setProfileData] = useState({
@@ -12,7 +13,8 @@ const ProfileSettings = ({ user, onUpdate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [validation, setValidation] = useState({
-    fullName: { isValid: true, message: '' }
+    fullName: { isValid: true, message: '' },
+    phone: { isValid: true, message: '' } // Add phone validation state
   });
   const [editingField, setEditingField] = useState(null); // Track which field is being edited
 
@@ -52,6 +54,23 @@ const ProfileSettings = ({ user, onUpdate }) => {
     }
 
     return { isValid: true, message: '✓ Valid name format' };
+  };
+
+  // Optimize validation functions
+  const validatePhone = (phone) => {
+    if (!phone) return { isValid: true, message: '' }; // Allow empty for non-owners
+    
+    const cleanPhone = phone.replace(/\s/g, '');
+    const phoneRegex = /^[\+]?[1-9][\d]{9,15}$/; // Require at least 10 digits
+    
+    if (!phoneRegex.test(cleanPhone)) {
+      return { 
+        isValid: false, 
+        message: 'Enter a valid phone number (10-15 digits)'
+      };
+    }
+    
+    return { isValid: true, message: '✓ Valid phone number' };
   };
 
   const handleFullNameChange = (value) => {
@@ -96,6 +115,16 @@ const ProfileSettings = ({ user, onUpdate }) => {
       }
     }
 
+    // Phone validation for hostel owners
+    if (isHostelOwner && profileData.phone) {
+      const phoneValidation = validatePhone(profileData.phone);
+      if (!phoneValidation.isValid) {
+        setMessage({ type: 'error', text: 'Please enter a valid phone number' });
+        setIsLoading(false);
+        return;
+      }
+    }
+
     // For hostel owners, validate required fields
     if (isHostelOwner) {
       if (!profileData.fullName || !profileData.age || !profileData.gender || !profileData.phone) {
@@ -106,7 +135,7 @@ const ProfileSettings = ({ user, onUpdate }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/users/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -209,18 +238,44 @@ const ProfileSettings = ({ user, onUpdate }) => {
           </div>
         )}
         
-        {/* Validation message for full name */}
-        {fieldName === 'fullName' && profileData.fullName && isEditing && (
+        {/* Validation message for full name and phone */}
+        {((fieldName === 'fullName' && profileData.fullName) || 
+          (fieldName === 'phone' && profileData.phone)) && 
+          isEditing && validation[fieldName] && (
           <p className={`text-xs font-medium flex items-center space-x-1 ${
-            validation.fullName.isValid ? 'text-green-600' : 'text-red-600'
+            validation[fieldName].isValid ? 'text-green-600' : 'text-red-600'
           }`}>
-            {validation.fullName.isValid ? <FaCheck className="text-xs" /> : <FaExclamationTriangle className="text-xs" />}
-            <span>{validation.fullName.message}</span>
+            {validation[fieldName].isValid ? 
+              <FaCheck className="text-xs" /> : 
+              <FaExclamationTriangle className="text-xs" />
+            }
+            <span>{validation[fieldName].message}</span>
           </p>
         )}
       </div>
     );
   };
+
+  // Combine validation in single useEffect
+  useEffect(() => {
+    const validateField = async () => {
+      const updates = {};
+      
+      if (profileData.fullName) {
+        updates.fullName = validateFullName(profileData.fullName);
+      }
+      
+      if (profileData.phone || isHostelOwner) {
+        updates.phone = validatePhone(profileData.phone);
+      }
+      
+      if (Object.keys(updates).length > 0) {
+        setValidation(prev => ({...prev, ...updates}));
+      }
+    };
+    
+    validateField();
+  }, [profileData.fullName, profileData.phone, isHostelOwner]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

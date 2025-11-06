@@ -10,18 +10,24 @@ const VerificationModal = ({ email, onVerify, onClose, onResend }) => {
   const [canResend, setCanResend] = useState(false)
 
   // Single timer for expiration
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      setCanResend(true)
-      return
-    }
+useEffect(() => {
+  if (timeLeft <= 0) {
+    setCanResend(true)
+    return
+  }
 
-    const timer = setTimeout(() => {
-      setTimeLeft(timeLeft - 1)
-    }, 1000)
+  const timer = setInterval(() => {
+    setTimeLeft(prev => {
+      if (prev <= 1) {
+        setCanResend(true)
+        return 0
+      }
+      return prev - 1
+    })
+  }, 1000)
 
-    return () => clearTimeout(timer)
-  }, [timeLeft])
+  return () => clearInterval(timer)
+}, [])
 
   const handleChange = (index, value) => {
     if (!/^\d?$/.test(value)) return // Only allow numbers

@@ -30,6 +30,18 @@ const ProfileDropdown = ({ onSettingsClick }) => {
     setIsOpen(false)
   }
 
+  // ✅ FIXED: My Profile opens with profile tab
+  const handleProfileClick = () => {
+    setIsOpen(false)
+    onSettingsClick('profile')
+  }
+
+  // ✅ FIXED: Settings opens with email tab
+  const handleSettingsClick = () => {
+    setIsOpen(false)
+    onSettingsClick('email')
+  }
+
   if (!user) return null
 
   return (
@@ -89,13 +101,11 @@ const ProfileDropdown = ({ onSettingsClick }) => {
               }}
             />
             
+            {/* ✅ FIXED: My Profile opens Profile tab */}
             <DropdownItem 
               icon={<FaUser className="text-purple-500" />}
               label="My Profile"
-              onClick={() => {
-                setIsOpen(false)
-                console.log('Navigate to profile')
-              }}
+              onClick={handleProfileClick} // ✅ This should call handleProfileClick
             />
 
             {user.userType === 'hostel_owner' && (
@@ -118,13 +128,11 @@ const ProfileDropdown = ({ onSettingsClick }) => {
               }}
             />
             
+            {/* ✅ FIXED: Settings opens Email tab */}
             <DropdownItem 
               icon={<FaCog className="text-gray-500" />}
               label="Settings"
-              onClick={() => {
-                setIsOpen(false)
-                onSettingsClick()
-              }}
+              onClick={handleSettingsClick} // ✅ This should call handleSettingsClick
             />
 
             {/* Divider */}

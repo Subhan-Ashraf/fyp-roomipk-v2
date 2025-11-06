@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FaUser, FaPhone, FaEnvelope, FaVenusMars, FaBirthdayCake, FaTimes, FaHome } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaUser, FaPhone, FaEnvelope, FaVenusMars, FaBirthdayCake, FaTimes, FaHome, FaInfoCircle } from 'react-icons/fa';
 import ModalPortal from '../common/ModalPortal'
 
 const UpgradeToOwnerModal = ({ isOpen, onClose, onUpgrade, isLoading, user }) => {
@@ -11,6 +11,18 @@ const UpgradeToOwnerModal = ({ isOpen, onClose, onUpgrade, isLoading, user }) =>
   });
 
   const [errors, setErrors] = useState({});
+
+  // Pre-fill form with existing profile data
+  useEffect(() => {
+    if (user?.profile) {
+      setFormData({
+        fullName: user.profile.fullName || '',
+        phone: user.profile.phone || '',
+        age: user.profile.age || '',
+        gender: user.profile.gender || ''
+      });
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     setFormData({
@@ -56,174 +68,187 @@ const UpgradeToOwnerModal = ({ isOpen, onClose, onUpgrade, isLoading, user }) =>
     }
   };
 
+  // Check if field is pre-filled from profile
+  const isPreFilled = (fieldName) => {
+    return user?.profile && user.profile[fieldName];
+  };
+
   if (!isOpen) return null;
 
   return (
     <ModalPortal>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300">
-        {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-100">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <FaHome className="text-white text-lg" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">Become a Hostel Owner</h2>
-              <p className="text-sm text-gray-600 mt-1">Upgrade your account to list hostels</p>
-            </div>
-          </div>
-          <button 
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-            disabled={isLoading}
-          >
-            <FaTimes className="text-xl" />
-          </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Full Name */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Full Name</label>
-            <div className="relative">
-              <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 transition ${
-                  errors.fullName ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'
-                }`}
-                placeholder="Enter your full name"
-                disabled={isLoading}
-              />
-            </div>
-            {errors.fullName && (
-              <p className="text-red-600 text-xs font-medium">{errors.fullName}</p>
-            )}
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">Become a Hostel Owner</h2>
+            <button 
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+              disabled={isLoading}
+            >
+              <FaTimes className="text-xl" />
+            </button>
           </div>
 
-          {/* Age and Gender in same row */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Age */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Age</label>
-              <div className="relative">
-                <FaBirthdayCake className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="number"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 transition ${
-                    errors.age ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'
-                  }`}
-                  placeholder="Age"
-                  min="18"
-                  max="100"
-                  disabled={isLoading}
-                />
+          {/* Form */}
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              {/* Full Name */}
+              <div>
+                <label className="flex items-center justify-between text-sm font-medium text-gray-700">
+                  <span>Full Name</span>
+                  {isPreFilled('fullName') && (
+                    <span className="text-xs text-green-600 flex items-center gap-1">
+                      <FaInfoCircle /> Pre-filled from profile
+                    </span>
+                  )}
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    type="text"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 ${
+                      isPreFilled('fullName') 
+                        ? 'bg-gray-50 border-gray-300 text-gray-500' 
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
+                    placeholder="Enter your full name"
+                    required
+                    disabled={isPreFilled('fullName') || isLoading}
+                  />
+                </div>
+                {errors.fullName && (
+                  <p className="text-red-600 text-xs font-medium">{errors.fullName}</p>
+                )}
               </div>
-              {errors.age && (
-                <p className="text-red-600 text-xs font-medium">{errors.age}</p>
-              )}
-            </div>
 
-            {/* Gender */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Gender</label>
-              <div className="relative">
-                <FaVenusMars className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 transition appearance-none ${
-                    errors.gender ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'
-                  }`}
-                  disabled={isLoading}
-                >
-                  <option value="">Select Gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
+              {/* Age and Gender in same row */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Age */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Age</label>
+                  <div className="mt-1">
+                    <input
+                      type="number"
+                      name="age"
+                      value={formData.age}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 ${
+                        isPreFilled('age') 
+                          ? 'bg-gray-50 border-gray-300 text-gray-500' 
+                          : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                      }`}
+                      placeholder="Age"
+                      min="18"
+                      max="100"
+                      required
+                      disabled={isPreFilled('age') || isLoading}
+                    />
+                  </div>
+                  {errors.age && (
+                    <p className="text-red-600 text-xs font-medium">{errors.age}</p>
+                  )}
+                </div>
+
+                {/* Gender */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Gender</label>
+                  <div className="mt-1">
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 ${
+                        isPreFilled('gender') 
+                          ? 'bg-gray-50 border-gray-300 text-gray-500' 
+                          : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                      }`}
+                      required
+                      disabled={isPreFilled('gender') || isLoading}
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  {errors.gender && (
+                    <p className="text-red-600 text-xs font-medium">{errors.gender}</p>
+                  )}
+                </div>
               </div>
-              {errors.gender && (
-                <p className="text-red-600 text-xs font-medium">{errors.gender}</p>
+
+              {/* Phone Number */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Phone Number</label>
+                <div className="mt-1">
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 ${
+                      isPreFilled('phone') 
+                        ? 'bg-gray-50 border-gray-300 text-gray-500' 
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
+                    placeholder="+92 300 1234567"
+                    required
+                    disabled={isPreFilled('phone') || isLoading}
+                  />
+                </div>
+                {errors.phone && (
+                  <p className="text-red-600 text-xs font-medium">{errors.phone}</p>
+                )}
+              </div>
+
+              {/* Current Email (Read-only) */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Verification Email</label>
+                <div className="relative">
+                  <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="email"
+                    value={user?.email}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                    readOnly
+                    disabled
+                  />
+                </div>
+                <p className="text-xs text-gray-500">
+                  We'll send a verification code to this email for security
+                </p>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full mt-6 bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <FaHome />
+                  <span>Become Hostel Owner</span>
+                </>
               )}
-            </div>
-          </div>
+            </button>
 
-          {/* Phone Number */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Phone Number</label>
-            <div className="relative">
-              <FaPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 transition ${
-                  errors.phone ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'
-                }`}
-                placeholder="+92 300 1234567"
-                disabled={isLoading}
-              />
-            </div>
-            {errors.phone && (
-              <p className="text-red-600 text-xs font-medium">{errors.phone}</p>
-            )}
-          </div>
-
-          {/* Current Email (Read-only) */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Verification Email</label>
-            <div className="relative">
-              <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="email"
-                value={user?.email}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                readOnly
-                disabled
-              />
-            </div>
-            <p className="text-xs text-gray-500">
-              We'll send a verification code to this email for security
+            {/* Info Text */}
+            <p className="mt-4 text-xs text-gray-500 text-center">
+              Pre-filled information from your profile cannot be modified here. 
+              To update these details, please use the Profile Settings.
             </p>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2 mt-6"
-          >
-            {isLoading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Upgrading Account...</span>
-              </>
-            ) : (
-              <>
-                <FaHome />
-                <span>Become Hostel Owner</span>
-              </>
-            )}
-          </button>
-
-          {/* Info Text */}
-          <div className="text-center pt-4 border-t border-gray-100">
-            <p className="text-xs text-gray-500">
-              By upgrading, you agree to our Hostel Owner Terms and can list up to 2 hostels
-            </p>
-          </div>
-        </form>
+          </form>
         </div>
       </div>
     </ModalPortal>

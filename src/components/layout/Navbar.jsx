@@ -1,17 +1,18 @@
 import React, { useState } from 'react'
 import { FaMapMarkerAlt, FaUser, FaHome } from 'react-icons/fa'
 import { useUser } from '../../context/UserContext'
+import { API_BASE_URL } from '../../utils/config'
 import ProfileDropdown from '../profile/ProfileDropdown'
 import UpgradeToOwnerModal from '../settings/UpgradeToOwnerModal'
 import OwnerVerificationModal from '../settings/OwnerVerificationModal'
 import SettingsModal from '../settings/SettingsModal' // ✅ UPDATED PATH
-
 
 const Navbar = ({ onAuthClick }) => {
   const { user, loading } = useUser()
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [showVerificationModal, setShowVerificationModal] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
+  const [settingsActiveTab, setSettingsActiveTab] = useState('profile') // ✅ ADD THIS STATE
   const [upgradeData, setUpgradeData] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
@@ -25,15 +26,14 @@ const Navbar = ({ onAuthClick }) => {
   }
 
   const handleUpgradeSubmit = async (formData) => {
-    setIsLoading(true)
-    setMessage({ type: '', text: '' })
+    setIsLoading(true);
+    setMessage({ type: '', text: '' });
     
     try {
       // Store the form data for after verification
-      setUpgradeData(formData)
+      setUpgradeData(formData);
       
-      // First, send verification code
-      const response = await fetch('/api/auth/send-verification', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/send-verification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -41,27 +41,32 @@ const Navbar = ({ onAuthClick }) => {
         body: JSON.stringify({ email: user.email })
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        setShowUpgradeModal(false)
-        setShowVerificationModal(true)
-      } else {
-        setMessage({ type: 'error', text: result.error || 'Failed to send verification code' })
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to send verification code');
       }
+
+      const result = await response.json();
+      setShowUpgradeModal(false);
+      setShowVerificationModal(true);
+
     } catch (error) {
-      setMessage({ type: 'error', text: 'Network error. Please check your connection.' })
+      console.error('Verification error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: error.message || 'Network error. Please check your connection.' 
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleVerification = async (code) => {
     setIsLoading(true)
     setMessage({ type: '', text: '' })
     
     try {
-      const response = await fetch('/api/users/upgrade-to-owner', {
+      const response = await fetch(`${API_BASE_URL}/api/users/upgrade-to-owner`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,21 +78,25 @@ const Navbar = ({ onAuthClick }) => {
         })
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Successfully upgraded to hostel owner! 🎉' })
-        setShowVerificationModal(false)
-        
-        // Refresh the page to update user context
-        setTimeout(() => {
-          window.location.reload()
-        }, 2000)
-      } else {
-        throw new Error(result.error)
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Upgrade failed');
       }
+
+      const result = await response.json();
+      setMessage({ type: 'success', text: 'Successfully upgraded to hostel owner! 🎉' })
+      setShowVerificationModal(false)
+      
+      // Refresh the page to update user context
+      setTimeout(() => {
+        window.location.reload()
+      }, 2000)
     } catch (error) {
-      setMessage({ type: 'error', text: error.message || 'Upgrade failed' })
+      console.error('Upgrade error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: error.message || 'Upgrade failed. Please try again.' 
+      });
     } finally {
       setIsLoading(false)
     }
@@ -96,7 +105,7 @@ const Navbar = ({ onAuthClick }) => {
   const handleResendCode = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/auth/resend-verification', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/resend-verification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -116,7 +125,9 @@ const Navbar = ({ onAuthClick }) => {
     }
   }
 
-  const handleSettingsClick = () => {
+  // ✅ UPDATED: Accept tab parameter
+  const handleSettingsClick = (tab = 'profile') => {
+    setSettingsActiveTab(tab)
     setShowSettingsModal(true)
   }
 
@@ -176,7 +187,7 @@ const Navbar = ({ onAuthClick }) => {
                   </button>
                 )}
                 
-                {/* Profile Dropdown - PASS THE SETTINGS HANDLER */}
+                {/* Profile Dropdown - PASS THE UPDATED SETTINGS HANDLER */}
                 <div className="animate-in slide-in-from-right-8 duration-500">
                   <ProfileDropdown onSettingsClick={handleSettingsClick} />
                 </div>
@@ -226,15 +237,15 @@ const Navbar = ({ onAuthClick }) => {
         />
       )}
 
-      {/* Settings Modal */}
+      {/* Settings Modal - ADD initialTab PROP */}
       <SettingsModal
         isOpen={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
         user={user}
         onUpdate={() => {
-          // refresh or handle updates after settings change
           console.log('Settings updated - refresh user data if needed')
         }}
+        initialTab={settingsActiveTab} // ✅ ADD THIS PROP
       />
 
       {/* Message Toast */}

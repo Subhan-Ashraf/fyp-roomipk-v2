@@ -1,0 +1,75 @@
+# Roomi.pk (v2) — Project structure and brief descriptions
+
+/ (project root)
+- package.json                # npm scripts and dependencies (frontend/backend)
+- .env                       # environment variables (RESEND_API_KEY, DB_URI, JWT_SECRET, etc.)
+- README.md                  # project overview and run instructions
+- project-structure.txt      # this file
+
+/backend
+- package.json                # backend-only dependencies (if separate)
+- server.js                   # Express server entrypoint (routes, middleware, start)
+- config/
+  - database.js               # DB connection helper (connectToDatabase, getDatabase)
+- models/
+  - User.js                   # User model and helper methods (create, find, comparePassword, verifyUser, updateLoginStats)
+  - VerificationCode.js       # Stores verification codes, attempts, expiration, CRUD helpers
+- routes/
+  - auth.js                   # Authentication routes: send-verification, verify-and-register, login, resend-verification
+  - users.js                  # User related routes: profile, update, list (protected)
+- utils/
+  - auth.js                   # JWT generation, authMiddleware to protect routes
+- services/
+  - email.js (optional)       # Optional email sending helper (Resend wrapper) used by auth routes
+
+/frontend
+- package.json                # frontend dependencies
+- vite.config.js or webpack config
+- index.html
+
+/src
+- main.jsx                    # React entry, ReactDOM render, provide context providers (UserContext)
+- App.jsx                     # App routes and global layout
+- index.css / tailwind.css    # Global styles (Tailwind config if used)
+
+/src/context
+- UserContext.jsx             # User context provider with login/logout, fetch current user and token handling
+
+/src/components
+- Navbar.jsx                  # Top navigation bar (logo, nav links, auth buttons or profile dropdown)
+- ProfileDropdown.jsx         # Profile menu with avatar, logout, settings
+- AuthModal.jsx               # Modal container for login/signup/verification (handles API calls)
+- LoginForm.jsx               # Login form component (username/email + password)
+- SignupForm.jsx              # Signup form component (username, email, password, other fields)
+- VerificationModal.jsx       # Modal for entering verification code with resend button
+- ...other shared UI components (Button, Input, Modal, LoadingSpinner, etc.)
+
+/src/pages
+- HomePage.jsx                # Home page content
+- HostelsPage.jsx             # Hostels listing
+- Hostels/[id].jsx            # Hostel detail page
+- CitiesPage.jsx              # Cities listing
+- ContactPage.jsx             # Contact form
+- ProfilePage.jsx             # Logged-in user's profile
+
+/src/hooks
+- useAuth.js (optional)       # Custom hooks for auth flows
+- useFetch.js (optional)      # Generic fetch hook with error handling
+
+/public
+- assets/                     # Images, icons, favicon
+
+/scripts (optional)
+- db-seed.js                  # Database seeding scripts
+- migrate.js                  # DB migrations
+
+/devops (optional)
+- docker-compose.yml
+- Dockerfile
+- .github/workflows/ci.yml    # CI workflows
+
+Notes and suggestions for Deepseek ingestion:
+- Provide the contents of critical files (backend/server.js, backend/routes/auth.js, backend/models/*, frontend/src/components/*, src/context/UserContext.jsx, and package.json files).
+- Include .env.example with keys required: RESEND_API_KEY, MONGO_URI, JWT_SECRET, PORT.
+- If Deepseek needs file contents too, export each file as plain text; keep the same file paths in the metadata so it can reconstruct the repository.
+- If you want, I can generate a single archive-like text containing each file with a header comment showing its filepath (suitable for bulk ingestion).

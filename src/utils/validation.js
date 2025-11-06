@@ -39,3 +39,17 @@ export const validateConfirmPassword = (password, confirmPassword) => {
     message: isValid ? '✓ Passwords match' : 'Passwords do not match'
   };
 };
+
+export const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email)
+    ? { isValid: true, message: '✓' }
+    : { isValid: false, message: 'Please enter a valid email' };
+};
+
+export const validateUsername = (username) => {
+  const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+  return usernameRegex.test(username)
+    ? { isValid: true, message: '✓' }
+    : { isValid: false, message: 'Username must be 3-20 characters (letters, numbers, _)' };
+};
